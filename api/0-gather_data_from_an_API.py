@@ -5,33 +5,32 @@ import requests
 import sys
 
 
-def get_employee_todo_progress(employee_id):
-    base_url = "https://jsonplaceholder.typicode.com/"
+def get_employeeprogress(employee_id):
+    url = "https://jsonplaceholder.typicode.com/"
 
-    user_response = requests.get("{}/users/{}".format(base_url, employee_id))
+    user_response = requests.get("{}/users/{}".format(url, employee_id))
     if user_response.status_code != 200:
         print("Error fetching user with ID {}".format(employee_id))
         return
 
-    user_data = user_response.json()
-    employee_name = user_data.get('name')
-
-    todos_response = requests.get("{}/todos?userId={}"
-                                  .format(base_url, employee_id))
-    if todos_response.status_code != 200:
+    data = user_response.json()
+    employeename = data.get('name')
+    todolist_request = requests.get("{}/todos?userId={}"
+                                  .format(url, employee_id))
+    
+    if todolist_request.status_code != 200:
         print("Error fetching TODO list for user with ID {}"
               .format(employee_id))
 
-    todos_data = todos_response.json()
-
-    total_tasks = len(todos_data)
-    done_tasks = [task for task in todos_data if task.get('completed')]
-    number_of_done_tasks = len(done_tasks)
+    todolist_data = todolist_request.json()
+    total_tasks = len(todolist_data)
+    complete_tasks = [task for task in todolist_data if task.get('completed')]
+    total_number_of_tasks = len(complete_tasks)
 
     print("Employee {} is done with tasks({}/{}):"
-          .format(employee_name, number_of_done_tasks, total_tasks))
+          .format(employeename, total_number_of_tasks, total_tasks))
 
-    for task in done_tasks:
+    for task in complete_tasks:
         print(f"\t {task.get('title')}")
 
 
@@ -41,6 +40,6 @@ if __name__ == "__main__":
     else:
         try:
             employee_id = int(sys.argv[1])
-            get_employee_todo_progress(employee_id)
+            get_employeeprogress(employee_id)
         except ValueError:
             print("Please provide a valid integer as employee ID")
