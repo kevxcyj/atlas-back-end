@@ -18,8 +18,7 @@ def get_employeeprogress(employee_id):
     employee_name = data.get('name')
     username = data.get('username')
 
-    todos_request = requests.get("{}/todos?userId={}"
-                                  .format(url, employee_id))
+    todos_request = requests.get("{}/todos?userId={}".format(url, employee_id))
     if todos_request.status_code != 200:
         print("Error fetching TODO list for user with ID {}"
               .format(employee_id))
