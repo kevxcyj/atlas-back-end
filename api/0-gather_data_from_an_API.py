@@ -29,8 +29,8 @@ def fetch_employee_todo_progress(employee_id):
     (f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
 
     if todos_response.status_code != 200:
-        print
-        (f"Error fetching TODO list for employee with ID {employee_id}. Status code: {todos_response.status_code}")
+        print (f"Error fetching TODO list for employee with ID {employee_id}. 
+               Status code: {todos_response.status_code}")
         sys.exit(1)
 
     todos_data = todos_response.json()
@@ -39,8 +39,7 @@ def fetch_employee_todo_progress(employee_id):
     completed_todos = [todo for todo in todos_data if todo['completed']]
 
     # Prepare and print task list
-    print
-    (f"Employee {employee_name} is done with tasks ({len(completed_todos)}/{len(todos_data)}):")
+    print (f"Employee {employee_name} is done with tasks ({len(completed_todos)}/{len(todos_data)}):")
     for todo in completed_todos:
         print(f"\t{todo['title']}")
 
