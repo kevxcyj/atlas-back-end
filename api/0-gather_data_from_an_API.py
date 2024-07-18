@@ -10,12 +10,10 @@ def fetch_employee_todo_progress(employee_id):
     Fetches and displays the TODO list progress for a given employee ID.
     """
 
-    name_response = requests.get(f"https://jsonplaceholder.typicode.com
-                                    /users/{employee_id}")
+    name_response = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}")
 
     if name_response.status_code != 200:
-        print(f"Error fetching employee with ID {employee_id}. 
-                Status code: {name_response.status_code}")
+        print(f"Error fetching employee with ID {employee_id}. Status code: {name_response.status_code}")
         sys.exit(1)
 
     name_data = name_response.json()
@@ -26,8 +24,8 @@ def fetch_employee_todo_progress(employee_id):
 
     employee_name = name_data['name']
 
-    todos_response = requests.get(f"https://jsonplaceholder.typicode.com
-                                    /todos?userId={employee_id}")
+    # Fetch all todos for the employee
+    todos_response = requests.get(f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
 
     if todos_response.status_code != 200:
         print(f"Error fetching TODO list for employee with ID {employee_id}. Status code: {todos_response.status_code}")
