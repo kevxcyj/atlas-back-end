@@ -6,50 +6,67 @@ import requests
 import sys
 
 
-def get_employeeprogress(employee_id):
-    url = "https://jsonplaceholder.typicode.com/"
+USERS_URL = "https://jsonplaceholder.typicode.com/users/"
+TODOS_URL = "https://jsonplaceholder.typicode.com/todos?userId="
 
-    user_request = requests.get("{}/users/{}".format(url, employee_id))
-    if user_request.status_code != 200:
-        print("Error fetching user with ID {}".format(employee_id))
+
+def get_JSON_export(employee_id):
+    """
+    Fetches a user and their todo list from the JSONPlaceholder API and exports
+    the data to a CSV file named after the user's ID.
+
+    Parameters:
+    - employee_id: The ID of the employee to retrieve information for.
+    """
+    user_response = requests.get(f"{USERS_URL}{employee_id}")
+    if user_response.status_code != 200:
+        print("Failed to retrieve employee information.")
         return
 
-    data = user_request.json()
-    employee_name = data.get('name')
-    username = data.get('username')
+    user_data = user_response.json()
+    employee_name = user_data.get('name')
+    if not employee_name:
+        print("Employee not found.")
+        return
 
-    todos_request = requests.get("{}/todos?userId={}".format(url, employee_id))
-    if todos_request.status_code != 200:
-        print("Error fetching TODO list for user with ID {}"
-              .format(employee_id))
+    username = user_data.get('username')
+    if not username:
+        print("Employee does not have a username set.")
+        return
 
-    todolist_data = todos_request.json()
-    total_tasks = len(todolist_data)
-    complete_tasks = [task for task in todolist_data if task.get('completed')]
-    total_number_of_tasks = len(complete_tasks)
+    todos_response = requests.get(f"{TODOS_URL}{employee_id}")
+    if todos_response.status_code != 200:
+        print("Failed to retrieve TODO list. Please check your parameters.")
+        return
 
-    print("Employee {} is done with tasks({}/{}):"
-          .format(employee_name, total_number_of_tasks, total_tasks))
+    todos = todos_response.json()
 
-    for task in complete_tasks:
-        print(f"\t {task.get('title')}")
+    # Prepare data for JSON
+    todo_json = []
+    for item in todos:
+        todo_json.append({
+            "task": item["title"],
+            "completed": item["completed"],
+            "username": username
+        })
 
-    tasks = [{"task": task.get('title'),
-              "completed": task.get('completed'),
-              "username": username} for task in todolist_data]
+    # Prepare JSON srtucture
+    json_data = {str(employee_id): todo_json}
 
-    jsondata = {str(employee_id): tasks}
-
-    with open("{}.json".format(employee_id), 'w') as jsonfile:
-        json.dump(jsondata, jsonfile, indent=4)
+    # Write json_data to .json
+    with open(f"{employee_id}.json", mode='w') as file:
+        json.dump(json_data, file, indent=4)
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python script.py <employee_id>")
-    else:
-        try:
-            employee_id = int(sys.argv[1])
-            get_employeeprogress(employee_id)
-        except ValueError:
-            print("Please provide a valid integer as employee ID")
+        print("Please enter the employee ID.")
+        sys.exit(1)
+
+    try:
+        employee_id = int(sys.argv[1])
+    except ValueError:
+        print("Employee ID must be an integer.")
+        sys.exit(1)
+
+    get_JSON_export(employee_id)
