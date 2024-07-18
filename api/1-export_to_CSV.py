@@ -1,34 +1,58 @@
 #!/usr/bin/python3
 """ script that gathers data from an api """
 
-import csv
 import requests
-from sys import argv
+import sys
+import csv
 
 
-def get_employee_todos(employee_id):
-    """ Employee ID """
+def fetch_employee_todo_progress(employee_id):
+    """
+    Fetches and displays the TODO list progress for a given employee ID.
+    """
+    name_response = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}")
 
-    site = "https://jsonplaceholder.typicode.com/"
-    user = requests.get(site + "users/{}".format(employee_id))
-    todo = requests.get(site + "todos?userId={}".format(employee_id))
+    if name_response.status_code != 200:
+        print(f"Error fetching employee with ID {employee_id}. Status code: {name_response.status_code}")
+        sys.exit(1)
 
-    users = user.json()
-    usernames = users.get("username")
-    todos = todo.json()
-    csv_file_name = "{}.csv".format(employee_id)
+    name_data = name_response.json()
 
-    completed = [i for i in todos if i.get("completed")]
+    if not name_data:
+        print(f"Employee with ID {employee_id} not found.")
+        sys.exit(1)
 
-    for i in completed:
-        print("\t {}".format(i.get("title")))
+    employee_name = name_data['name']
 
-    with open(csv_file_name, mode='w', newline='') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        for i in todos:
-            writer.writerow([employee_id, usernames,
-                             i.get('completed'), i.get('title')])
+    todos_response = requests.get(f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
+
+    if todos_response.status_code != 200:
+        print(f"Error fetching TODO list for employee with ID {employee_id}. Status code: {todos_response.status_code}")
+        sys.exit(1)
+
+    todos_data = todos_response.json()
+
+    completed_todos = [todo for todo in todos_data if todo['completed']]
+
+    print(f"Employee {employee_name} is done with tasks ({len(completed_todos)}/{len(todos_data)}):")
+    for todo in completed_todos:
+        print(f"\t{todo['title']}")
+
+    # Export data in CSV format
+    csv_file_name = f"{employee_id}.csv"
+    with open(csv_file_name, mode='w', newline='') as csv_file:
+        fieldnames = ['USER_ID', 'USERNAME', 'TASK_COMPLETED_STATUS', 'TASK_TITLE']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for todo in todos_data:
+            writer.writerow({'USER_ID': employee_id, 'USERNAME': employee_name, 'TASK_COMPLETED_STATUS': todo['completed'], 'TASK_TITLE': todo['title']})
 
 
 if __name__ == "__main__":
-    get_employee_todos(employee_id=argv[1])
+    if len(sys.argv) < 2:
+        print("Usage: python script.py <employee_id>")
+        sys.exit(1)
+
+    employee_id = sys.argv[1]
+    fetch_employee_todo_progress(employee_id)
